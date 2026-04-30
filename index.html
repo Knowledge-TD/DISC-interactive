@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DISC Styles - Safe Offline Interactive Demo</title>
+  <style>
+    /* =========================================================
+       DISC SAFE OFFLINE INTERACTIVE DEMO
+       Security design:
+       - One HTML file only
+       - No external libraries / CDN / internet calls
+       - No images or external fonts
+       - No cookies, storage, forms, tracking, permissions, or eval()
+       ========================================================= */
+
+    :root {
+      --bg-1: #f8fafc;
+      --bg-2: #eef2f7;
+      --ink: #172033;
+      --muted: #64748b;
+      --card: rgba(255, 255, 255, 0.9);
+      --shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
+
+      --d: #d92d20;
+      --i: #f2c230;
+      --s: #2f9e44;
+      --c: #1d6fd6;
+
+      --d-dark: #9f1f17;
+      --i-dark: #b88400;
+      --s-dark: #1f6f31;
+      --c-dark: #144a91;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(125, 211, 252, 0.22), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(242, 194, 48, 0.18), transparent 36%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    }
+
+    body { overflow-x: hidden; }
+    button { font-family: inherit; }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 18px 36px;
+    }
+
+    .topbar {
+      width: min(1160px, 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      overflow: hidden;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16);
+    }
+
+    .brand-mark span:nth-child(1) { background: var(--d); }
+    .brand-mark span:nth-child(2) { background: var(--i); }
+    .brand-mark span:nth-child(3) { background: var(--s); }
+    .brand-mark span:nth-child(4) { background: var(--c); }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(22px, 3vw, 34px);
+      letter-spacing: -0.03em;
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .screen {
+      width: min(1160px, 100%);
+      display: none;
+      animation: screenIn 420ms ease both;
+    }
+
+    .screen.active { display: block; }
+
+    @keyframes screenIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* =========================================================
+       HOME SCREEN
+       ========================================================= */
+
+    .home-layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) minmax(320px, 1.15fr);
+      gap: 28px;
+      align-items: center;
+      min-height: calc(100vh - 150px);
+    }
+
+    .intro-card {
+      background: var(--card);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 28px;
+      padding: clamp(22px, 3.5vw, 38px);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 11px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.06);
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .intro-card h2 {
+      margin: 18px 0 12px;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 0.96;
+      letter-spacing: -0.06em;
+    }
+
+    .intro-card .lead {
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.55;
+      margin: 0 0 22px;
+    }
+
+    .mini-instructions {
+      display: grid;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .mini-instructions div {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #334155;
+      font-size: 15px;
+    }
+
+    .check {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(34, 197, 94, 0.14);
+      color: #15803d;
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+
+    .wheel-card {
+      position: relative;
+      display: grid;
+      place-items: center;
+      padding: clamp(18px, 3vw, 34px);
+      background: rgba(255, 255, 255, 0.62);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 34px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .disc-wheel {
+      position: relative;
+      width: min(560px, 86vw);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background:
+        conic-gradient(from 0deg,
+          var(--d) 0deg 90deg,
+          var(--c) 90deg 180deg,
+          var(--s) 180deg 270deg,
+          var(--i) 270deg 360deg);
+      box-shadow:
+        inset 0 0 0 12px rgba(255,255,255,0.65),
+        inset 0 0 0 14px rgba(15,23,42,0.08),
+        0 30px 80px rgba(15, 23, 42, 0.20);
+      overflow: hidden;
+    }
+
+    .wheel-center {
+      position: absolute;
+      inset: 50%;
+      width: 150px;
+      height: 150px;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.94);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      box-shadow: 0 16px 40px rgba(15,23,42,0.22);
+      border: 1px solid rgba(148,163,184,0.35);
+    }
+
+    .wheel-center strong {
+      display: block;
+      font-size: 33px;
+      letter-spacing: -0.04em;
+    }
+
+    .wheel-center span {
+      display: block;
+      color: #64748b;
+      font-size: 12px;
+      margin-top: 3px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .wheel-btn {
+      position: absolute;
+      z-index: 6;
+      width: 44%;
+      height: 44%;
+      border: 0;
+      background: transparent;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 220ms ease, filter 220ms ease;
+    }
+
+    .wheel-btn:hover,
+    .wheel-btn:focus-visible {
+      transform: scale(1.06);
+      filter: brightness(1.08);
+      outline: none;
+    }
+
+    .wheel-btn:focus-visible .wheel-letter {
+      outline: 4px solid rgba(255,255,255,0.75);
+      outline-offset: 6px;
+    }
+
+    .wheel-btn.d { top: 4%; left: 52%; }
+    .wheel-btn.i { top: 4%; left: 4%; }
+    .wheel-btn.s { top: 52%; left: 4%; }
+    .wheel-btn.c { top: 52%; left: 52%; }
+
+    .wheel-letter {
+      display: grid;
+      place-items: center;
+      width: 112px;
+      height: 112px;
+      border-radius: 32px;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.35);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12), 0 12px 34px rgba(15,23,42,0.18);
+      text-shadow: 0 4px 12px rgba(0,0,0,0.32);
+    }
+
+    .wheel-letter b {
+      font-size: 66px;
+      line-height: 0.88;
+      letter-spacing: -0.08em;
+    }
+
+    .wheel-letter span {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .quick-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    .quick-card {
+      border: 0;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.88);
+      padding: 14px;
+      text-align: left;
+      cursor: pointer;
+      box-shadow: 0 10px 28px rgba(15,23,42,0.08);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .quick-card:hover,
+    .quick-card:focus-visible {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 36px rgba(15,23,42,0.13);
+      outline: none;
+    }
+
+    .quick-card strong {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .quick-card span {
+      color: #64748b;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .quick-card.d strong { color: var(--d); }
+    .quick-card.i strong { color: var(--i-dark); }
+    .quick-card.s strong { color: var(--s); }
+    .quick-card.c strong { color: var(--c); }
+
+    /* =========================================================
+       DETAIL SCREEN
+       ========================================================= */
+
+    .detail-card {
+      position: relative;
+      min-height: calc(100vh - 124px);
+      display: grid;
+      grid-template-columns: minmax(330px, 0.95fr) minmax(380px, 1.05fr);
+      gap: 28px;
+      align-items: stretch;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 34px;
+      padding: clamp(18px, 3vw, 34px);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .detail-card::before {
+      content: "";
+      position: absolute;
+      inset: auto -10% -36% -10%;
+      height: 55%;
+      background: radial-gradient(circle, var(--style-soft), transparent 58%);
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    .character-stage {
+      position: relative;
+      min-height: 560px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 50% 70%, rgba(255,255,255,0.92), rgba(255,255,255,0.46) 52%, rgba(255,255,255,0.20)),
+        linear-gradient(145deg, rgba(255,255,255,0.52), rgba(255,255,255,0.22));
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      overflow: hidden;
+    }
+
+    .stage-title {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      z-index: 2;
+      padding: 9px 13px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.78);
+      color: #334155;
+      font-weight: 800;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      box-shadow: 0 10px 24px rgba(15,23,42,0.08);
+    }
+
+    .style-info {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: clamp(16px, 3vw, 30px);
+    }
+
+    .back-btn {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 0;
+      padding: 11px 14px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.08);
+      color: #334155;
+      cursor: pointer;
+      font-weight: 800;
+      transition: transform 160ms ease, background 160ms ease;
+    }
+
+    .back-btn:hover,
+    .back-btn:focus-visible {
+      transform: translateX(-3px);
+      background: rgba(15, 23, 42, 0.12);
+      outline: none;
+    }
+
+    .style-kicker {
+      margin-top: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--style-dark);
+      font-size: 14px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .style-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--style);
+      box-shadow: 0 0 0 7px var(--style-soft);
+    }
+
+    .style-info h2 {
+      margin: 14px 0 8px;
+      font-size: clamp(46px, 6vw, 78px);
+      line-height: 0.9;
+      letter-spacing: -0.07em;
+      color: var(--style-dark);
+    }
+
+    .style-info .subtitle {
+      margin: 0 0 22px;
+      color: #475569;
+      font-size: 20px;
+      line-height: 1.45;
+    }
+
+    .bullet-box {
+      display: grid;
+      gap: 13px;
+      margin: 0 0 24px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .bullet-box li {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      align-items: start;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(148,163,184,0.20);
+      border-radius: 18px;
+      padding: 14px 15px;
+      box-shadow: 0 12px 26px rgba(15,23,42,0.06);
+      color: #334155;
+      line-height: 1.45;
+    }
+
+    .bullet-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: var(--style-soft);
+      color: var(--style-dark);
+      font-weight: 900;
+    }
+
+    .nav-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: auto;
+    }
+
+    .nav-pill {
+      border: 0;
+      cursor: pointer;
+      padding: 10px 13px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.78);
+      color: #334155;
+      font-weight: 800;
+      box-shadow: 0 10px 26px rgba(15,23,42,0.06);
+      transition: transform 160ms ease, background 160ms ease;
+    }
+
+    .nav-pill:hover,
+    .nav-pill:focus-visible {
+      transform: translateY(-2px);
+      outline: none;
+      background: var(--style-soft);
+    }
+
+    /* =========================================================
+       SVG CHARACTER SYSTEM
+       ========================================================= */
+
+    .character-svg {
+      width: min(430px, 88vw);
+      height: auto;
+      overflow: visible;
+      filter: drop-shadow(0 24px 22px rgba(15, 23, 42, 0.16));
+    }
+
+    .ground-shadow { fill: rgba(15, 23, 42, 0.11); transform-origin: center; }
+    .white-face { fill: #fffef7; }
+    .shoe { fill: #111827; }
+    .paper { fill: #f8fafc; stroke: #1f2937; stroke-width: 3; }
+    .outline { stroke: #1f2937; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+
+    .char-body, .char-head, .char-arm, .char-leg, .char-hair, .char-extra {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    /* D animation: confident goal-reaching character */
+    .style-d .anim-d-body {
+      animation: dRunBounce 820ms infinite ease-in-out;
+      transform-origin: 250px 350px;
+      transform-box: fill-box;
+    }
+    .style-d .anim-d-arm {
+      animation: dArmReach 820ms infinite ease-in-out;
+      transform-origin: 220px 200px;
+      transform-box: fill-box;
+    }
+    .style-d .anim-d-star {
+      animation: dStarPulse 1900ms infinite ease-in-out;
+      transform-origin: 410px 80px;
+      transform-box: fill-box;
+    }
+    .style-d .anim-d-speed {
+      animation: dSpeedDash 1200ms infinite linear;
+      transform-box: fill-box;
+    }
+    .style-d .anim-d-speed.delay-1 { animation-delay: 0s; }
+    .style-d .anim-d-speed.delay-2 { animation-delay: 0.4s; }
+    .style-d .anim-d-speed.delay-3 { animation-delay: 0.8s; }
+
+    @keyframes dRunBounce {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-12px) rotate(2deg); }
+    }
+    @keyframes dArmReach {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(6deg); }
+    }
+    @keyframes dStarPulse {
+      0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.9; }
+      50% { transform: scale(1.15) rotate(8deg); opacity: 1; filter: drop-shadow(0 0 12px rgba(242, 194, 48, 0.6)); }
+    }
+    @keyframes dSpeedDash {
+      0% { transform: translateX(80px); opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateX(-150px); opacity: 0; }
+    }
+
+    /* I animation */
+    .style-i .i-character-main {
+      animation: iBounce 950ms infinite ease-in-out;
+      transform-origin: 50% 86%;
+      transform-box: fill-box;
+    }
+    .style-i .i-left-arm { animation: iArmWaveLeft 950ms infinite ease-in-out; transform-origin: 176px 247px; }
+    .style-i .i-right-arm { animation: iArmWaveRight 950ms infinite ease-in-out; transform-origin: 274px 247px; }
+    .style-i .sparkle { animation: sparklePop 1400ms infinite ease-in-out; transform-origin: center; transform-box: fill-box; }
+    .style-i .sparkle.s2 { animation-delay: 250ms; }
+    .style-i .sparkle.s3 { animation-delay: 520ms; }
+    .style-i .sparkle.s4 { animation-delay: 760ms; }
+
+    @keyframes iBounce {
+      0%, 100% { transform: translateY(0) scaleY(1); }
+      45% { transform: translateY(-18px) scaleY(1.02); }
+      70% { transform: translateY(3px) scaleY(0.98); }
+    }
+    @keyframes iArmWaveLeft { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-9deg); } }
+    @keyframes iArmWaveRight { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(9deg); } }
+    @keyframes sparklePop {
+      0%, 100% { transform: scale(0.6) rotate(0deg); opacity: 0.25; }
+      45% { transform: scale(1.25) rotate(18deg); opacity: 1; }
+    }
+
+    /* S nurturing plant animation */
+    .style-s .s-nurture-main {
+      animation: sCalmBreathe 2800ms infinite ease-in-out;
+      transform-origin: 50% 75%;
+      transform-box: fill-box;
+    }
+    .style-s .watering-can {
+      animation: waterTilt 3100ms infinite ease-in-out;
+      transform-origin: 69% 48%;
+      transform-box: fill-box;
+    }
+    .style-s .water-drop {
+      animation: waterDrop 1250ms infinite ease-in;
+      opacity: 0;
+    }
+    .style-s .drop2 { animation-delay: 220ms; }
+    .style-s .drop3 { animation-delay: 440ms; }
+    .style-s .plant-leaf {
+      animation: leafGrow 3100ms infinite ease-in-out;
+      transform-origin: bottom center;
+      transform-box: fill-box;
+    }
+    .style-s .ground-shadow {
+      animation: sShadow 2800ms infinite ease-in-out;
+      transform-origin: center;
+    }
+    .style-s .calm-circle { animation: calmFloat 3800ms infinite ease-in-out; }
+    .style-s .calm-circle.c2 { animation-delay: 850ms; }
+    .style-s .calm-circle.c3 { animation-delay: 1500ms; }
+
+    @keyframes sCalmBreathe {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-4px) scale(1.014); }
+    }
+    @keyframes sShadow {
+      0%, 100% { transform: scaleX(1); opacity: 1; }
+      50% { transform: scaleX(0.94); opacity: 0.76; }
+    }
+    @keyframes waterTilt {
+      0%, 100% { transform: rotate(0deg); }
+      40%, 68% { transform: rotate(-10deg); }
+    }
+    @keyframes waterDrop {
+      0%, 28% { transform: translateY(0); opacity: 0; }
+      42% { opacity: 0.9; }
+      100% { transform: translateY(54px); opacity: 0; }
+    }
+    @keyframes leafGrow {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    @keyframes calmFloat {
+      0%, 100% { transform: translateY(8px) scale(0.88); opacity: 0.14; }
+      50% { transform: translateY(-14px) scale(1.08); opacity: 0.34; }
+    }
+
+    /* C animation */
+    .style-c .c-character-main {
+      animation: cFocusLean 2300ms infinite ease-in-out;
+      transform-origin: 50% 78%;
+      transform-box: fill-box;
+    }
+    .style-c .magnifier { animation: inspectMove 1700ms infinite ease-in-out; transform-origin: center; transform-box: fill-box; }
+    .style-c .paper-top { animation: paperFlip 1800ms infinite ease-in-out; transform-origin: 290px 342px; transform-box: fill-box; }
+    .style-c .checkmark { animation: checkAppear 1800ms infinite ease-in-out; opacity: 0; }
+    .style-c .checkmark.k2 { animation-delay: 350ms; }
+    .style-c .checkmark.k3 { animation-delay: 700ms; }
+
+    @keyframes cFocusLean { 0%, 100% { transform: rotate(0deg) translateY(0); } 50% { transform: rotate(-1.8deg) translateY(3px); } }
+    @keyframes inspectMove { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(-10px, 8px) rotate(-5deg); } }
+    @keyframes paperFlip { 0%, 100% { transform: rotate(0deg); } 45% { transform: rotate(-10deg); } 70% { transform: rotate(4deg); } }
+    @keyframes checkAppear { 0%, 25% { opacity: 0; transform: scale(0.7); } 45%, 100% { opacity: 1; transform: scale(1); } }
+
+    @media (max-width: 860px) {
+      .topbar { flex-direction: column; align-items: flex-start; }
+      .home-layout, .detail-card { grid-template-columns: 1fr; }
+      .detail-card { min-height: auto; }
+      .character-stage { min-height: 470px; }
+      .quick-cards { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 520px) {
+      .app { padding: 18px 12px 26px; }
+      .wheel-letter { width: 84px; height: 84px; border-radius: 24px; }
+      .wheel-letter b { font-size: 48px; }
+      .wheel-letter span { font-size: 10px; }
+      .wheel-center { width: 118px; height: 118px; }
+      .quick-cards { grid-template-columns: 1fr; }
+      .character-stage { min-height: 410px; }
+      .style-info h2 { font-size: 44px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand" aria-label="DISC interactive demo">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div>
+          <h1>DISC Styles Interactive</h1>
+        </div>
+      </div>
+    </header>
+
+    <section id="homeScreen" class="screen active" aria-label="DISC wheel home screen">
+      <div class="home-layout">
+        <div class="intro-card">
+          <span class="eyebrow">Interactive activity</span>
+          <h2>Explore the four DISC styles.</h2>
+          <p class="lead">Click a style on the wheel to see a smooth animated character and three quick reminders about that style.</p>
+          <div class="mini-instructions">
+            <div><span class="check">✓</span> Click any DISC quarter or quick card.</div>
+            <div><span class="check">✓</span> Use keyboard shortcuts: D, I, S, C, or Escape.</div>
+          </div>
+        </div>
+
+        <div class="wheel-card">
+          <div class="disc-wheel" role="img" aria-label="DISC wheel with four clickable styles">
+            <button class="wheel-btn d" data-style="d" aria-label="Open Dominance style"><span class="wheel-letter"><b>D</b><span>Dominance</span></span></button>
+            <button class="wheel-btn i" data-style="i" aria-label="Open Influence style"><span class="wheel-letter"><b>I</b><span>Influence</span></span></button>
+            <button class="wheel-btn s" data-style="s" aria-label="Open Steadiness style"><span class="wheel-letter"><b>S</b><span>Steadiness</span></span></button>
+            <button class="wheel-btn c" data-style="c" aria-label="Open Compliance style"><span class="wheel-letter"><b>C</b><span>Compliance</span></span></button>
+            <div class="wheel-center" aria-hidden="true"><div><strong>DISC</strong><span>Choose style</span></div></div>
+          </div>
+
+          <div class="quick-cards" aria-label="Quick style buttons">
+            <button class="quick-card d" data-style="d"><strong>D — Dominance</strong><span>Direct, fast, results-focused</span></button>
+            <button class="quick-card i" data-style="i"><strong>I — Influence</strong><span>Expressive, social, persuasive</span></button>
+            <button class="quick-card s" data-style="s"><strong>S — Steadiness</strong><span>Calm, supportive, patient</span></button>
+            <button class="quick-card c" data-style="c"><strong>C — Compliance</strong><span>Careful, precise, analytical</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="detailScreen" class="screen" aria-label="DISC style detail screen">
+      <div id="detailCard" class="detail-card">
+        <div class="character-stage">
+          <span id="stageTitle" class="stage-title">Style</span>
+          <div id="characterMount" aria-hidden="true"></div>
+        </div>
+
+        <div class="style-info">
+          <button class="back-btn" id="backBtn" type="button">← Back to wheel</button>
+          <div class="style-kicker"><span class="style-dot"></span><span id="styleKicker">DISC style</span></div>
+          <h2 id="styleTitle">Style</h2>
+          <p id="styleSubtitle" class="subtitle">Short description.</p>
+          <ul id="bulletList" class="bullet-box"></ul>
+          <div class="nav-row">
+            <button class="nav-pill" data-style="d">D</button>
+            <button class="nav-pill" data-style="i">I</button>
+            <button class="nav-pill" data-style="s">S</button>
+            <button class="nav-pill" data-style="c">C</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    /* SAFE VANILLA JAVASCRIPT ONLY: no network, no storage, no eval. */
+
+    const styleData = {
+      d: {
+        name: 'Dominance', letter: 'D', color: '#d92d20', dark: '#9f1f17', soft: 'rgba(217, 45, 32, 0.15)',
+        subtitle: 'Fast, direct, and focused on action and results.',
+        bullets: ['Gets to the point quickly and prefers clear decisions.', 'Focuses on goals, speed, challenge, and control.', 'May sound impatient when pressure is high.'],
+        character: dominanceSVG
+      },
+      i: {
+        name: 'Influence', letter: 'I', color: '#f2c230', dark: '#b88400', soft: 'rgba(242, 194, 48, 0.20)',
+        subtitle: 'Energetic, expressive, and motivated by people and enthusiasm.',
+        bullets: ['Creates energy through conversation and optimism.', 'Enjoys recognition, connection, and creative ideas.', 'May jump quickly from one idea to another.'],
+        character: influenceSVG
+      },
+      s: {
+        name: 'Steadiness', letter: 'S', color: '#2f9e44', dark: '#1f6f31', soft: 'rgba(47, 158, 68, 0.16)',
+        subtitle: 'Calm, patient, and supportive with a steady team-focused style.',
+        bullets: ['Nurtures trust through patience, care, and consistency.', 'Creates a calm environment where people feel supported.', 'May avoid sudden conflict or rushed change when uncomfortable.'],
+        character: steadinessSVG
+      },
+      c: {
+        name: 'Compliance', letter: 'C', color: '#1d6fd6', dark: '#144a91', soft: 'rgba(29, 111, 214, 0.16)',
+        subtitle: 'Careful, analytical, and focused on accuracy and standards.',
+        bullets: ['Checks facts, details, logic, and quality before acting.', 'Prefers clear rules, evidence, and well-defined standards.', 'May slow down when information is vague or incomplete.'],
+        character: complianceSVG
+      }
+    };
+
+    const homeScreen = document.getElementById('homeScreen');
+    const detailScreen = document.getElementById('detailScreen');
+    const detailCard = document.getElementById('detailCard');
+    const characterMount = document.getElementById('characterMount');
+    const stageTitle = document.getElementById('stageTitle');
+    const styleKicker = document.getElementById('styleKicker');
+    const styleTitle = document.getElementById('styleTitle');
+    const styleSubtitle = document.getElementById('styleSubtitle');
+    const bulletList = document.getElementById('bulletList');
+    const backBtn = document.getElementById('backBtn');
+
+    document.querySelectorAll('[data-style]').forEach(button => button.addEventListener('click', () => openStyle(button.dataset.style)));
+    backBtn.addEventListener('click', showHome);
+    document.addEventListener('keydown', event => {
+      const key = event.key.toLowerCase();
+      if (['d', 'i', 's', 'c'].includes(key)) openStyle(key);
+      if (key === 'escape') showHome();
+    });
+
+    function openStyle(styleKey) {
+      const data = styleData[styleKey];
+      if (!data) return;
+      detailCard.className = `detail-card style-${styleKey}`;
+      detailCard.style.setProperty('--style', data.color);
+      detailCard.style.setProperty('--style-dark', data.dark);
+      detailCard.style.setProperty('--style-soft', data.soft);
+      stageTitle.textContent = `${data.letter} — ${data.name}`;
+      styleKicker.textContent = `${data.letter} style`;
+      styleTitle.textContent = data.name;
+      styleSubtitle.textContent = data.subtitle;
+      bulletList.innerHTML = '';
+      data.bullets.forEach((bullet, index) => {
+        const li = document.createElement('li');
+        const icon = document.createElement('span');
+        const text = document.createElement('span');
+        icon.className = 'bullet-icon';
+        icon.textContent = index + 1;
+        text.textContent = bullet;
+        li.appendChild(icon);
+        li.appendChild(text);
+        bulletList.appendChild(li);
+      });
+      characterMount.innerHTML = data.character();
+      homeScreen.classList.remove('active');
+      detailScreen.classList.add('active');
+    }
+
+    function showHome() {
+      detailScreen.classList.remove('active');
+      homeScreen.classList.add('active');
+      characterMount.innerHTML = '';
+    }
+
+    function dominanceSVG() {
+      return `
+      <svg class="character-svg" viewBox="0 0 500 500" role="img" aria-label="Dominance animated character reaching a goal" xmlns="http://www.w3.org/2000/svg">
+        <ellipse class="ground-shadow" cx="225" cy="456" rx="118" ry="24"/>
+
+        <!-- Speed/Action Lines -->
+        <g stroke="#cbd5e1" stroke-width="8" stroke-linecap="round">
+          <line x1="120" y1="100" x2="200" y2="100" class="anim-d-speed delay-1" />
+          <line x1="60" y1="260" x2="160" y2="260" class="anim-d-speed delay-2" />
+          <line x1="90" y1="420" x2="150" y2="420" class="anim-d-speed delay-3" />
+        </g>
+
+        <!-- The Goal / Star -->
+        <g class="anim-d-star">
+          <circle cx="410" cy="80" r="35" fill="#f2c230" opacity="0.2" />
+          <path d="M 410 40 L 420.5 65.5 L 448 65.5 L 425.7 81.6 L 434.3 107.4 L 410 91.2 L 385.7 107.4 L 394.3 81.6 L 372 65.5 L 399.5 65.5 Z" 
+                fill="#f2c230" stroke="#b88400" stroke-width="4" stroke-linejoin="round"/>
+        </g>
+
+        <!-- Character Group -->
+        <g class="anim-d-body">
+          <!-- Left Arm -->
+          <path d="M 220 200 L 150 220 L 90 160" 
+                fill="none" stroke="#d92d20" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+          
+          <!-- Left Leg -->
+          <path d="M 180 300 L 130 350 L 60 400" 
+                fill="none" stroke="#d92d20" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- Left Shoe -->
+          <rect x="37.5" y="388" width="45" height="24" rx="12" fill="#172033" transform="rotate(-25 60 400)"/>
+
+          <!-- Torso -->
+          <path d="M 220 200 L 180 300" 
+                fill="none" stroke="#d92d20" stroke-width="80" stroke-linecap="round"/>
+
+          <!-- Right Leg -->
+          <path d="M 180 300 L 260 280 L 250 380" 
+                fill="none" stroke="#d92d20" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- Right Shoe -->
+          <rect x="225" y="368" width="50" height="24" rx="12" fill="#172033" transform="rotate(-5 250 380)"/>
+
+          <!-- Right Arm -->
+          <path d="M 220 200 L 290 180 L 360 130" 
+                class="anim-d-arm"
+                fill="none" stroke="#d92d20" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- Head Base -->
+          <circle cx="250" cy="120" r="42" fill="#f8fafc" stroke="#172033" stroke-width="8"/>
+
+          <!-- Red Line Hair / Hat -->
+          <path d="M 218 95 Q 250 80 282 95" fill="none" stroke="#d92d20" stroke-width="10" stroke-linecap="round"/>
+
+          <!-- Face Details: eyes on same level + one clean smile -->
+          <g stroke="#172033" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="240" cy="112" r="5.5" fill="#172033" stroke="none"/>
+            <circle cx="270" cy="112" r="5.5" fill="#172033" stroke="none"/>
+            <path d="M 228 100 L 248 104 M 282 100 L 262 104" stroke-width="6" fill="none"/>
+            <path d="M 235 135 Q 250 145 265 135" stroke-width="5" fill="none"/>
+          </g>
+        </g>
+      </svg>`;
+    }
+
+    function influenceSVG() {
+      return `
+      <svg class="character-svg" viewBox="0 0 450 560" role="img" aria-label="Influence animated character">
+        <ellipse class="ground-shadow" cx="225" cy="512" rx="120" ry="24"/>
+        <g class="sparkle s1"><path d="M91 156 L102 183 L130 194 L103 205 L91 232 L80 205 L52 194 L80 183 Z" fill="#f2c230" opacity=".72"/></g>
+        <g class="sparkle s2"><path d="M354 127 L362 147 L383 155 L362 164 L354 185 L345 164 L324 155 L345 147 Z" fill="#f59e0b" opacity=".66"/></g>
+        <g class="sparkle s3"><circle cx="365" cy="260" r="12" fill="#fde68a"/></g><g class="sparkle s4"><circle cx="82" cy="292" r="10" fill="#fef3c7"/></g>
+        <g class="i-character-main">
+          <path d="M181 478 L201 316 L249 316 L269 478" fill="#f2c230" class="outline"/>
+          <path d="M194 478 L188 510 L221 510 L222 478" class="shoe"/><path d="M246 478 L249 510 L282 510 L273 478" class="shoe"/>
+          <rect x="181" y="238" width="88" height="122" rx="30" fill="#f2c230" class="outline"/>
+          <circle cx="225" cy="172" r="51" class="white-face outline"/>
+          <path d="M191 134 C204 103 255 103 272 135" fill="none" stroke="#f2c230" stroke-width="9" stroke-linecap="round"/>
+          <path d="M203 176 Q214 166 225 176" stroke="#1f2937" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M245 176 Q256 166 267 176" stroke="#1f2937" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M211 202 Q225 218 247 202" stroke="#1f2937" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <g class="i-left-arm"><path d="M183 253 C142 242 111 220 84 189" fill="none" stroke="#f2c230" stroke-width="20" stroke-linecap="round"/><path d="M84 189 L61 182" stroke="#f2c230" stroke-width="11" stroke-linecap="round"/><path d="M84 189 L70 167" stroke="#f2c230" stroke-width="11" stroke-linecap="round"/></g>
+          <g class="i-right-arm"><path d="M268 253 C310 241 340 219 366 187" fill="none" stroke="#f2c230" stroke-width="20" stroke-linecap="round"/><path d="M366 187 L389 178" stroke="#f2c230" stroke-width="11" stroke-linecap="round"/><path d="M366 187 L381 166" stroke="#f2c230" stroke-width="11" stroke-linecap="round"/></g>
+        </g>
+      </svg>`;
+    }
+
+    function steadinessSVG() {
+      return `
+      <svg class="character-svg" viewBox="0 0 450 560" role="img" aria-label="Steadiness nurturing plant animation">
+        <ellipse class="ground-shadow" cx="225" cy="512" rx="118" ry="24"/>
+        <circle class="calm-circle c1" cx="112" cy="150" r="42" fill="rgba(47,158,68,.12)"/>
+        <circle class="calm-circle c2" cx="346" cy="185" r="38" fill="rgba(47,158,68,.10)"/>
+        <circle class="calm-circle c3" cx="94" cy="306" r="30" fill="rgba(47,158,68,.09)"/>
+
+        <g class="s-nurture-main">
+          <path d="M181 478 L199 316 L251 316 L269 478" fill="#2f9e44" class="outline"/>
+          <path d="M194 478 L188 510 L221 510 L222 478" class="shoe"/>
+          <path d="M246 478 L249 510 L282 510 L273 478" class="shoe"/>
+          <rect x="176" y="238" width="98" height="123" rx="34" fill="#2f9e44" class="outline"/>
+          <circle cx="225" cy="173" r="52" class="white-face outline"/>
+          <path d="M192 136 C204 114 250 112 271 137" fill="none" stroke="#2f9e44" stroke-width="8" stroke-linecap="round"/>
+          <circle cx="208" cy="182" r="4.5" fill="#1f2937"/>
+          <circle cx="250" cy="182" r="4.5" fill="#1f2937"/>
+          <path d="M208 203 Q225 217 248 203" stroke="#1f2937" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <path d="M176 263 C147 286 135 320 130 356" fill="none" stroke="#2f9e44" stroke-width="21" stroke-linecap="round"/>
+          <path d="M130 356 C131 369 147 370 155 358" fill="none" stroke="#2f9e44" stroke-width="14" stroke-linecap="round"/>
+          <path d="M270 263 C292 276 306 292 322 310" fill="none" stroke="#2f9e44" stroke-width="21" stroke-linecap="round"/>
+        </g>
+
+        <g class="watering-can">
+          <rect x="311" y="294" width="58" height="38" rx="10" fill="#94a3b8" stroke="#1f2937" stroke-width="4"/>
+          <path d="M369 306 L400 291" stroke="#1f2937" stroke-width="9" stroke-linecap="round"/>
+          <path d="M315 304 C294 307 294 329 315 331" fill="none" stroke="#1f2937" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="340" cy="312" r="5" fill="#cbd5e1"/>
+        </g>
+
+        <circle class="water-drop" cx="395" cy="320" r="4.5" fill="#38bdf8"/>
+        <circle class="water-drop drop2" cx="409" cy="329" r="4.5" fill="#38bdf8"/>
+        <circle class="water-drop drop3" cx="385" cy="336" r="4.5" fill="#38bdf8"/>
+
+        <g class="plant-group">
+          <rect x="332" y="436" width="55" height="43" rx="8" fill="#8b5a2b"/>
+          <path d="M334 436 L385 436 L376 479 L343 479 Z" fill="#a16207" opacity=".55"/>
+          <path class="plant-leaf" d="M360 436 C338 407 334 382 352 370 C366 391 370 416 360 436" fill="#2f9e44"/>
+          <path class="plant-leaf" d="M361 436 C386 410 396 385 379 371 C363 391 355 416 361 436" fill="#22c55e"/>
+          <path class="plant-leaf" d="M360 438 C360 411 360 389 360 365" stroke="#1f6f31" stroke-width="5" stroke-linecap="round"/>
+          <path class="plant-leaf" d="M360 414 C346 404 332 398 319 399" stroke="#2f9e44" stroke-width="7" stroke-linecap="round"/>
+          <path class="plant-leaf" d="M360 416 C374 402 390 396 404 398" stroke="#22c55e" stroke-width="7" stroke-linecap="round"/>
+        </g>
+      </svg>`;
+    }
+
+    function complianceSVG() {
+      return `
+      <svg class="character-svg" viewBox="0 0 450 560" role="img" aria-label="Compliance animated character">
+        <ellipse class="ground-shadow" cx="225" cy="512" rx="118" ry="24"/>
+        <g class="c-character-main">
+          <path d="M181 478 L199 318 L251 318 L269 478" fill="#1d6fd6" class="outline"/>
+          <path d="M194 478 L188 510 L221 510 L222 478" class="shoe"/><path d="M246 478 L249 510 L282 510 L273 478" class="shoe"/>
+          <rect x="176" y="240" width="98" height="124" rx="32" fill="#1d6fd6" class="outline"/>
+          <circle cx="225" cy="174" r="52" class="white-face outline"/>
+          <path d="M192 137 C209 111 253 111 273 139" fill="none" stroke="#1d6fd6" stroke-width="9" stroke-linecap="round"/>
+          <path d="M206 178 L221 178" stroke="#1f2937" stroke-width="5" stroke-linecap="round"/><path d="M247 178 L262 178" stroke="#1f2937" stroke-width="5" stroke-linecap="round"/>
+          <path d="M215 207 Q228 213 243 207" stroke="#1f2937" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M178 268 C150 294 144 332 151 366" fill="none" stroke="#1d6fd6" stroke-width="20" stroke-linecap="round"/>
+          <path d="M272 268 C303 291 311 326 304 360" fill="none" stroke="#1d6fd6" stroke-width="20" stroke-linecap="round"/>
+        </g>
+        <g class="paper-top">
+          <rect x="178" y="322" width="122" height="112" rx="8" class="paper"/>
+          <line x1="202" y1="352" x2="270" y2="352" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+          <line x1="202" y1="382" x2="270" y2="382" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+          <line x1="202" y1="412" x2="260" y2="412" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+          <path class="checkmark k1" d="M188 350 L195 358 L211 340" fill="none" stroke="#1d6fd6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path class="checkmark k2" d="M188 380 L195 388 L211 370" fill="none" stroke="#1d6fd6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path class="checkmark k3" d="M188 410 L195 418 L211 400" fill="none" stroke="#1d6fd6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <g class="magnifier"><circle cx="306" cy="322" r="34" fill="rgba(255,255,255,.35)" stroke="#1f2937" stroke-width="6"/><line x1="329" y1="346" x2="365" y2="386" stroke="#1f2937" stroke-width="9" stroke-linecap="round"/><circle cx="296" cy="312" r="8" fill="rgba(255,255,255,.55)"/></g>
+      </svg>`;
+    }
+  </script>
+</body>
+</html>
